@@ -1,10 +1,10 @@
 <script lang="ts">
-	import Terminal from '../components/windows/Terminal.svelte';
+	import MSDOS from '../components/windows/MSDOS.svelte';
 	import Xp from '../components/windows/Xp.svelte';
 </script>
 
 <div class="timeline">
-	<Terminal />
+	<MSDOS />
 	<Xp />
 </div>
 

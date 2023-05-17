@@ -271,6 +271,7 @@
 	.screen {
 		height: 500px;
 		aspect-ratio: 4/3;
+		max-height: 500px;
 		max-width: calc(100vw - 40px);
 		background-color: rgb(37, 33, 33);
 		position: relative;
@@ -288,14 +289,6 @@
 		-moz-user-select: none;
 		-o-user-select: none;
 		user-select: none;
-	}
-
-	@media (max-width: 1200px) {
-		.screen {
-			max-width: calc(100vw - 40px);
-			height: calc(100vw - 40px);
-			aspect-ratio: 1;
-		}
 	}
 
 	.desktop {
@@ -340,7 +333,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		box-sizing: border-box;
 	}
 
 	.start:hover {
@@ -349,10 +341,9 @@
 	}
 
 	.start img {
-		width: 90px;
+		width: 100%;
 		height: 90%;
 		object-fit: contain;
-		/* background-color: red; */
 	}
 
 	.tray {

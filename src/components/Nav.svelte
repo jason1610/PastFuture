@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	let currentDirectory: string;
 
-	onMount(() => {
+	onMount(() => {	
 		currentDirectory = window.location.pathname.split('/')[1];
 		window.addEventListener('popstate', () => {
 			currentDirectory = window.location.pathname.split('/')[1];

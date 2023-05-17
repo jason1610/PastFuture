@@ -2,7 +2,7 @@
 	import { onMount, afterUpdate } from 'svelte';
 	import { bind } from 'svelte/internal';
 
-	let inputText: string = 'dwdw';
+	let inputText: string = 'C:\\';
 	let terminalText = 'Welcome to Svelte Terminal';
 	let input: HTMLSpanElement;
 	let terminal: HTMLDivElement;
@@ -12,6 +12,24 @@
 			terminalText += '> ' + inputText + '\n';
 			inputText = '';
 			e.preventDefault();
+		}
+	};
+
+	const handleKeyDown = (e: KeyboardEvent) => {
+		if (e.key === 'Backspace' && inputText.length <= 3) {
+			e.preventDefault();
+		}
+
+		if (e.key === 'Enter') {
+			terminalText += '> ' + inputText + '\n';
+			inputText = '';
+			e.preventDefault();
+		}
+	};
+
+	const checkDeleted = () => {
+		if (inputText.slice(0, 3) !== 'C:\\') {
+			inputText = 'C:\\';
 		}
 	};
 
@@ -35,8 +53,13 @@
 			input.focus();
 		}}
 	>
-		<span>C:\></span>
-		<span class="input" bind:this={input} contenteditable="true">{inputText}</span>
+		<input
+			bind:this={input}
+			type="text"
+			bind:value={inputText}
+			on:keydown={handleKeyDown}
+			on:input={checkDeleted}
+		/>
 	</div>
 	<div class="description">
 		<h1>MSDOS</h1>
@@ -59,21 +82,22 @@
 		background-color: black;
 		color: white;
 		padding: 20px;
-		max-height: 300px;
 		overflow: auto;
 		border-radius: 25px;
-		width: 500px;
-		height: 500px;
+		height: 400px;
+		aspect-ratio: 1;
+		max-width: calc(100vw - 40px);
 		overflow: hidden;
 	}
 
-	.input {
-		background-color: black;
+	input {
+		background-color: rgb(0, 0, 0);
 		color: white;
 		width: 20px;
 		outline: none;
 		border: none;
 		width: 100%;
+		overflow: hidden;
 	}
 
 	.caret {

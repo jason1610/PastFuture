@@ -41,6 +41,7 @@
 		align-items: center;
 		box-sizing: border-box;
 		transition: all 0.5s ease-in-out;
+		z-index: 100;
 	}
 
 	header.top {
