@@ -21,10 +21,10 @@
 
 <header class={`${isAtTop ? 'top' : 'blur'}`}>
 	<div class="content">
-		<h1>GUI-timeline</h1>
+		<h1>PastFuture</h1>
 		<div class="right">
-			<p>Github</p>
-			<p>Other</p>
+			<a href="/os/windows">OS</a>
+			<a href="https://1610.fr" target="_blank">1610</a>
 		</div>
 	</div>
 </header>
@@ -75,5 +75,9 @@
 	h1 {
 		font-size: 1.3rem;
 		font-weight: 500;
+	}
+
+	a {
+		text-decoration: none;
 	}
 </style>

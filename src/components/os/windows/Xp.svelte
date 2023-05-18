@@ -21,6 +21,7 @@
 	const fileSize: number = 80;
 
 	let desktop: HTMLDivElement;
+	let windowWidth: number;
 	let screen: HTMLDivElement;
 	let startMenuOpen: boolean = false;
 	let draggingFile: number = -1;
@@ -28,10 +29,9 @@
 	let offset: { x: number; y: number } = { x: 0, y: 0 };
 	let openedStartMenu: boolean = false;
 	let oldPosition: { x: number; y: number } = { x: 0, y: 0 };
-	let dektopFiles: { x: number; y: number; name: string; img: string }[] = [
-		// { x: 0, y: 0, name: 'My Computer', img: '' },
-		{ x: 50, y: 0, name: 'Recycle Bin', img: `${Recycling}` },
-		{ x: 400, y: 0, name: 'Internet', img: `${IE}` }
+	let desktopFiles: { x: number; y: number; name: string; img: string }[] = [
+		{ x: 0, y: 0, name: 'Recycle Bin', img: `${Recycling}` },
+		{ x: fileSize, y: 0, name: 'Internet', img: `${IE}` }
 	];
 
 	const handleStartButton = () => {
@@ -67,63 +67,101 @@
 		};
 	};
 
+	const touchDragStart = (e: TouchEvent, file: number) => {
+		e.preventDefault();
+		desktopRect = desktop.getBoundingClientRect();
+		oldPosition = snapToGrid({
+			x: e.touches[0].clientX - desktopRect.left,
+			y: e.touches[0].clientY - desktopRect.top
+		});
+		draggingFile = file;
+		offset = {
+			x: e.touches[0].clientX - desktopRect.left - oldPosition.x,
+			y: e.touches[0].clientY - desktopRect.top - oldPosition.y
+		};
+	};
+
 	const drag = (e: MouseEvent) => {
 		if (draggingFile !== -1) {
 			const newFile: { x: number; y: number; name: string; img: string } = {
 				x: e.clientX - desktopRect.left - offset.x,
 				y: e.clientY - desktopRect.top - offset.y,
-				name: dektopFiles[draggingFile].name,
-				img: dektopFiles[draggingFile].img
+				name: desktopFiles[draggingFile].name,
+				img: desktopFiles[draggingFile].img
 			};
-			//
-			dektopFiles = [
-				...dektopFiles.slice(0, draggingFile),
+			desktopFiles = [
+				...desktopFiles.slice(0, draggingFile),
 				newFile,
-				...dektopFiles.slice(draggingFile + 1)
+				...desktopFiles.slice(draggingFile + 1)
 			];
 		}
 	};
 
-	const dragEnd = (e: MouseEvent) => {
+	const touchDrag = (e: TouchEvent) => {
+		if (draggingFile !== -1) {
+			const newFile: { x: number; y: number; name: string; img: string } = {
+				x: e.touches[0].clientX - desktopRect.left - offset.x,
+				y: e.touches[0].clientY - desktopRect.top - offset.y,
+				name: desktopFiles[draggingFile].name,
+				img: desktopFiles[draggingFile].img
+			};
+			desktopFiles = [
+				...desktopFiles.slice(0, draggingFile),
+				newFile,
+				...desktopFiles.slice(draggingFile + 1)
+			];
+		}
+	};
+
+	const dragEnd = () => {
 		if (draggingFile === -1) return;
 
 		const snapPosition = snapToGrid({
-			x: dektopFiles[draggingFile].x + offset.x,
-			y: dektopFiles[draggingFile].y + offset.y
+			x: desktopFiles[draggingFile].x + offset.x,
+			y: desktopFiles[draggingFile].y + offset.y
 		});
 
 		if (
-			dektopFiles[draggingFile].x + offset.x < 0 ||
-			dektopFiles[draggingFile].x - 80 > desktopRect.width ||
-			dektopFiles[draggingFile].y + offset.y < 0 ||
-			dektopFiles[draggingFile].y > desktopRect.height ||
-			dektopFiles.some(
+			desktopFiles[draggingFile].x + offset.x < 0 ||
+			desktopFiles[draggingFile].x - 80 > desktopRect.width ||
+			desktopFiles[draggingFile].y + offset.y < 0 ||
+			desktopFiles[draggingFile].y > desktopRect.height ||
+			desktopFiles.some(
 				(file, index) =>
 					index !== draggingFile && file.x === snapPosition.x && file.y === snapPosition.y
 			)
 		) {
-			dektopFiles = [
-				...dektopFiles.slice(0, draggingFile),
-				{ ...dektopFiles[draggingFile], x: oldPosition.x, y: oldPosition.y },
-				...dektopFiles.slice(draggingFile + 1)
+			desktopFiles = [
+				...desktopFiles.slice(0, draggingFile),
+				{ ...desktopFiles[draggingFile], x: oldPosition.x, y: oldPosition.y },
+				...desktopFiles.slice(draggingFile + 1)
 			];
 		} else {
-			dektopFiles = [
-				...dektopFiles.slice(0, draggingFile),
-				{ ...dektopFiles[draggingFile], x: snapPosition.x, y: snapPosition.y },
-				...dektopFiles.slice(draggingFile + 1)
+			desktopFiles = [
+				...desktopFiles.slice(0, draggingFile),
+				{ ...desktopFiles[draggingFile], x: snapPosition.x, y: snapPosition.y },
+				...desktopFiles.slice(draggingFile + 1)
 			];
 		}
 
 		draggingFile = -1;
 	};
 
+	const setWindowWidth = () => {
+		windowWidth = window.innerWidth;
+	};
+
 	onMount(() => {
+		setWindowWidth();
+		window.addEventListener('resize', setWindowWidth);
 		window.addEventListener('mousemove', drag);
+		window.addEventListener('touchmove', touchDrag, { passive: false });
 		window.addEventListener('mouseup', dragEnd);
+		window.addEventListener('touchend', dragEnd);
 		return () => {
 			window.removeEventListener('mousemove', drag);
 			window.removeEventListener('mouseup', dragEnd);
+			window.removeEventListener('resize', () => setWindowWidth);
 		};
 	});
 </script>
@@ -132,11 +170,21 @@
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
 	<div class="screen" bind:this={screen} on:click={handleScreenClick}>
 		<div class="desktop" bind:this={desktop}>
-			{#each dektopFiles as file, index (file)}
+			{#if draggingFile !== -1}
+				<div class="file" style={`left:${oldPosition.x}px; top:${oldPosition.y}px; `}>
+					<img src={desktopFiles[draggingFile].img} alt="" draggable="false" />
+					<p style="background-color: rgba(40,100,200,0.9);">
+						{desktopFiles[draggingFile].name}
+					</p>
+				</div>
+			{/if}
+
+			{#each desktopFiles as file, index (file)}
 				<div
 					class="file"
-					style={`left:${dektopFiles[index].x}px; top:${dektopFiles[index].y}px;`}
+					style={`left:${desktopFiles[index].x}px; top:${desktopFiles[index].y}px;`}
 					on:mousedown={(e) => dragStart(e, index)}
+					on:touchstart={(e) => touchDragStart(e, index)}
 				>
 					<img src={file.img} alt={file.name} draggable="false" />
 					<p>
@@ -171,10 +219,12 @@
 								<img src={Minesweeper} alt="" draggable="false" />
 								<p>Minesweeper</p>
 							</div>
-							<div class="item">
-								<img src={MSN} alt="" draggable="false" />
-								<p>MSN</p>
-							</div>
+							{#if windowWidth > 600}
+								<div class="item">
+									<img src={MSN} alt="" draggable="false" />
+									<p>MSN</p>
+								</div>
+							{/if}>
 							<div class="seperator" style="margin-top: auto; " />
 							<div class="all-programs">
 								<p>All Programs</p>
@@ -194,10 +244,12 @@
 								<img src={Music} alt="" />
 								<p>My Music</p>
 							</div>
-							<div class="small-item">
-								<img src={Favorites} alt="" />
-								<p>My Favorites</p>
-							</div>
+							{#if windowWidth > 600}
+								<div class="small-item">
+									<img src={Favorites} alt="" />
+									<p>My Favorites</p>
+								</div>
+							{/if}
 							<div class="seperator" />
 							<div class="small-item">
 								<img src={Help} alt="" />
@@ -269,9 +321,8 @@
 	}
 
 	.screen {
-		height: 500px;
+		width: min(600px, calc(100vw - 40px));
 		aspect-ratio: 4/3;
-		max-width: calc(100vw - 40px);
 		background-color: rgb(37, 33, 33);
 		position: relative;
 		display: flex;
@@ -288,14 +339,6 @@
 		-moz-user-select: none;
 		-o-user-select: none;
 		user-select: none;
-	}
-
-	@media (max-width: 1200px) {
-		.screen {
-			max-width: calc(100vw - 40px);
-			height: calc(100vw - 40px);
-			aspect-ratio: 1;
-		}
 	}
 
 	.desktop {
@@ -391,8 +434,7 @@
 		bottom: 0;
 		left: 0;
 		width: 300px;
-		height: 350px;
-		overflow: hidden;
+		height: min(350px, 85%);
 		border-radius: 5px 5px 0 0;
 		box-shadow: 2px 5px 5px 2px hsla(0, 0%, 0%, 0.5);
 		z-index: 0;
@@ -419,6 +461,13 @@
 		padding: 0 5px;
 		gap: 10px;
 		font-size: 14px;
+		background: linear-gradient(
+			hsl(223, 72%, 49%) 0%,
+			hsl(214, 80%, 63%) 1%,
+			hsl(223, 72%, 49%) 5%,
+			hsl(214, 80%, 58%) 97.5%,
+			hsl(223, 72%, 49%) 100%
+		);
 	}
 
 	.menu .profile {
@@ -503,6 +552,8 @@
 		width: 99.5%;
 		display: flex;
 		flex-direction: row;
+		overflow: hidden;
+		flex-shrink: 1;
 	}
 
 	.list-left {
@@ -520,6 +571,11 @@
 		background-color: #cce1fa;
 		box-shadow: -1px 0px 0px 0px #a4bfdd;
 		box-sizing: border-box;
+	}
+
+	.group {
+		/* overflow: scroll; */
+		flex-shrink: 1;
 	}
 
 	.item {
@@ -625,6 +681,12 @@
 		justify-content: flex-end;
 		font-family: 'Tahoma Pixel', sans-serif;
 		gap: 5px;
+		background: linear-gradient(
+			hsl(223, 72%, 49%) 0%,
+			hsl(214, 80%, 58%) 5%,
+			hsl(223, 72%, 49%) 99%,
+			hsl(223, 76%, 29%) 100%
+		);
 	}
 
 	.bottom button {

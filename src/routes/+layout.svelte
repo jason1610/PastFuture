@@ -1,13 +1,10 @@
 <script lang="ts">
-	import Header from '../components/Header.svelte';
-	import Intro from '../components/Intro.svelte';
-	import Nav from '../components/Nav.svelte';
+	import Header from '../components/home/Header.svelte';
 </script>
 
 <Header />
 <main>
-	<Intro />
-	<Nav />
+	<div style="height: 100px;" />
 	<slot />
 </main>
 
@@ -20,12 +17,30 @@
 		font-family: 'Roboto', sans-serif;
 	}
 
+	:global(:root) {
+		--text-color-primary: white;
+		--text-color-secondary: #757575;
+		--text-color-accent: #725cd2;
+
+		--title-large-size: 90px;
+		--title-large-weight: 700;
+
+		--title-small-size: 30px;
+		--title-small-weight: 700;
+
+		--text-size: 18px;
+		--text-weight: 400;
+
+		--content-width: 1200px;
+	}
+
 	:global(html) {
 		scroll-behavior: smooth;
 		color-scheme: dark;
 	}
 
 	main {
+		overflow-x: hidden;
 		width: 100%;
 		min-height: 100vh;
 		min-height: 100lvh;
