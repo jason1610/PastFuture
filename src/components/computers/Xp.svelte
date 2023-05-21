@@ -168,132 +168,134 @@
 
 <div class="container">
 	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<div class="screen" bind:this={screen} on:click={handleScreenClick}>
-		<div class="desktop" bind:this={desktop}>
-			{#if draggingFile !== -1}
-				<div class="file" style={`left:${oldPosition.x}px; top:${oldPosition.y}px; `}>
-					<img src={desktopFiles[draggingFile].img} alt="" draggable="false" />
-					<p style="background-color: rgba(40,100,200,0.9);">
-						{desktopFiles[draggingFile].name}
-					</p>
-				</div>
-			{/if}
+	<div class="content">
+		<div class="screen" bind:this={screen} on:click={handleScreenClick}>
+			<div class="desktop" bind:this={desktop}>
+				{#if draggingFile !== -1}
+					<div class="file" style={`left:${oldPosition.x}px; top:${oldPosition.y}px; `}>
+						<img src={desktopFiles[draggingFile].img} alt="" draggable="false" />
+						<p style="background-color: rgba(40,100,200,0.9);">
+							{desktopFiles[draggingFile].name}
+						</p>
+					</div>
+				{/if}
 
-			{#each desktopFiles as file, index (file)}
-				<div
-					class="file"
-					style={`left:${desktopFiles[index].x}px; top:${desktopFiles[index].y}px;`}
-					on:mousedown={(e) => dragStart(e, index)}
-					on:touchstart={(e) => touchDragStart(e, index)}
-				>
-					<img src={file.img} alt={file.name} draggable="false" />
-					<p>
-						{file.name}
-					</p>
-				</div>
-			{/each}
-			{#if startMenuOpen}
-				<div class="menu">
-					<div class="top">
-						<div class="profile">
-							<img src={Profile} alt="" draggable="false" />
-						</div>
-						<h2>Admin</h2>
+				{#each desktopFiles as file, index (file)}
+					<div
+						class="file"
+						style={`left:${desktopFiles[index].x}px; top:${desktopFiles[index].y}px;`}
+						on:mousedown={(e) => dragStart(e, index)}
+						on:touchstart={(e) => touchDragStart(e, index)}
+					>
+						<img src={file.img} alt={file.name} draggable="false" />
+						<p>
+							{file.name}
+						</p>
 					</div>
-					<div class="orange" />
-					<div class="list-container">
-						<div class="list-left">
-							<div class="item">
-								<img src={IE} alt="" draggable="false" />
-								<div class="text">
-									<p>Internet</p>
-									<p>Internet Explorer</p>
-								</div>
+				{/each}
+				{#if startMenuOpen}
+					<div class="menu">
+						<div class="top">
+							<div class="profile">
+								<img src={Profile} alt="" draggable="false" />
 							</div>
-							<div class="seperator" />
-							<div class="item">
-								<img src={Notepad} alt="" draggable="false" />
-								<p>Notepad</p>
-							</div>
-							<div class="item">
-								<img src={Minesweeper} alt="" draggable="false" />
-								<p>Minesweeper</p>
-							</div>
-							{#if windowWidth > 600}
+							<h2>Admin</h2>
+						</div>
+						<div class="orange" />
+						<div class="list-container">
+							<div class="list-left">
 								<div class="item">
-									<img src={MSN} alt="" draggable="false" />
-									<p>MSN</p>
+									<img src={IE} alt="" draggable="false" />
+									<div class="text">
+										<p>Internet</p>
+										<p>Internet Explorer</p>
+									</div>
 								</div>
-							{/if}>
-							<div class="seperator" style="margin-top: auto; " />
-							<div class="all-programs">
-								<p>All Programs</p>
-								<img src={Programs} alt="" />
+								<div class="seperator" />
+								<div class="item">
+									<img src={Notepad} alt="" draggable="false" />
+									<p>Notepad</p>
+								</div>
+								<div class="item">
+									<img src={Minesweeper} alt="" draggable="false" />
+									<p>Minesweeper</p>
+								</div>
+								{#if windowWidth > 600}
+									<div class="item">
+										<img src={MSN} alt="" draggable="false" />
+										<p>MSN</p>
+									</div>
+								{/if}>
+								<div class="seperator" style="margin-top: auto; " />
+								<div class="all-programs">
+									<p>All Programs</p>
+									<img src={Programs} alt="" />
+								</div>
 							</div>
-						</div>
-						<div class="list-right">
-							<div class="small-item">
-								<img src={Documents} alt="" />
-								<p>My Documents</p>
-							</div>
-							<div class="small-item">
-								<img src={Pictures} alt="" />
-								<p>My Pictures</p>
-							</div>
-							<div class="small-item">
-								<img src={Music} alt="" />
-								<p>My Music</p>
-							</div>
-							{#if windowWidth > 600}
+							<div class="list-right">
 								<div class="small-item">
-									<img src={Favorites} alt="" />
-									<p>My Favorites</p>
+									<img src={Documents} alt="" />
+									<p>My Documents</p>
 								</div>
-							{/if}
-							<div class="seperator" />
-							<div class="small-item">
-								<img src={Help} alt="" />
-								<p>Help</p>
+								<div class="small-item">
+									<img src={Pictures} alt="" />
+									<p>My Pictures</p>
+								</div>
+								<div class="small-item">
+									<img src={Music} alt="" />
+									<p>My Music</p>
+								</div>
+								{#if windowWidth > 600}
+									<div class="small-item">
+										<img src={Favorites} alt="" />
+										<p>My Favorites</p>
+									</div>
+								{/if}
+								<div class="seperator" />
+								<div class="small-item">
+									<img src={Help} alt="" />
+									<p>Help</p>
+								</div>
 							</div>
 						</div>
-					</div>
-					<div class="bottom">
-						<button>
-							<img src={Key} alt="" />
-						</button>
-						<p>Log Off</p>
-						<button style="margin-left: 5px;">
-							<img src={Off} alt="" />
-						</button>
-						<p>Turn Off Computer</p>
-					</div>
-					<!-- <div id="start-menu-close" on:click={closeStartMenu}>X</div>
+						<div class="bottom">
+							<button>
+								<img src={Key} alt="" />
+							</button>
+							<p>Log Off</p>
+							<button style="margin-left: 5px;">
+								<img src={Off} alt="" />
+							</button>
+							<p>Turn Off Computer</p>
+						</div>
+						<!-- <div id="start-menu-close" on:click={closeStartMenu}>X</div>
 					<div id="start-menu-content">Start Menu Content</div> -->
+					</div>
+				{/if}
+			</div>
+			<div class="taskbar">
+				<button
+					class="start"
+					on:click={handleStartButton}
+					style={`${startMenuOpen ? 'filter: brightness(0.95)' : ''}`}
+				>
+					<img src={Start} alt="start" draggable="false" />
+				</button>
+				<div class="tray">
+					<img src={Virus} alt="" draggable="false" />
+					<img src={Volume} alt="" draggable="false" />
+					<p>4:23 AM</p>
 				</div>
-			{/if}
-		</div>
-		<div class="taskbar">
-			<button
-				class="start"
-				on:click={handleStartButton}
-				style={`${startMenuOpen ? 'filter: brightness(0.95)' : ''}`}
-			>
-				<img src={Start} alt="start" draggable="false" />
-			</button>
-			<div class="tray">
-				<img src={Virus} alt="" draggable="false" />
-				<img src={Volume} alt="" draggable="false" />
-				<p>4:23 AM</p>
 			</div>
 		</div>
-	</div>
-	<div class="description">
-		<h1>Windows XP</h1>
-		<p>
-			Windows XP is a graphical operating system. It was released in 2001. It was the first consumer
-			version of Windows to be built on the Windows NT kernel. It was also the first version of
-			Windows to use product activation to combat software piracy.
-		</p>
+		<div class="description">
+			<h1>Windows XP</h1>
+			<p>
+				Windows XP is a graphical operating system. It was released in 2001. It was the first
+				consumer version of Windows to be built on the Windows NT kernel. It was also the first
+				version of Windows to use product activation to combat software piracy.
+			</p>
+		</div>
 	</div>
 </div>
 
@@ -314,14 +316,23 @@
 
 	.container {
 		display: flex;
+		justify-content: center;
+		padding: var(--section-padding);
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	.content {
+		width: 900px;
+		max-width: 100%;
+		display: flex;
 		flex-direction: column;
 		align-items: center;
-		margin: 50px 0;
-		padding: 20px;
 	}
 
 	.screen {
-		width: min(600px, calc(100vw - 40px));
+		width: 100%;
+		/* width: min(600px, calc(100vw - 40px)); */
 		aspect-ratio: 4/3;
 		background-color: rgb(37, 33, 33);
 		position: relative;
@@ -720,7 +731,7 @@
 	}
 
 	.description {
-		width: 500px;
-		max-width: 90vw;
+		/* width: 500px; */
+		/* max-width: 90vw; */
 	}
 </style>

@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { onMount, afterUpdate } from 'svelte';
 	import Logo from './assets/MSDOS-boot-logo.png';
+	import Computer from './assets/5150.png';
 
+	let directory: string = 'C:\\';
 	let inputText: string = '';
 	let terminalText: string[] = [''];
 	let input: HTMLSpanElement;
@@ -11,9 +13,8 @@
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (e.key === 'Enter') {
 			if (inputText === 'dir') {
-				const newLine: string = '> ' + inputText;
+				const newLine: string = directory + inputText;
 				terminalText = [...terminalText, newLine];
-				terminalText = [...terminalText, '> C:\\'];
 				terminalText = [...terminalText, 'WINDOWS'];
 				terminalText = [...terminalText, 'SYSTEM32'];
 				terminalText = [...terminalText, 'DRIVERS'];
@@ -28,10 +29,30 @@
 				terminalText = [...terminalText, 'WINVER.EXE'];
 				terminalText = [...terminalText, 'WINVER.INI'];
 				terminalText = [...terminalText, 'WINVER.LOG'];
+				terminalText = [...terminalText, ' '];
+				inputText = '';
+			}
+			// else if (inputText.startsWith('cd')) {
+			// 	const newLine: string = '> ' + inputText;
+			// 	terminalText = [...terminalText, newLine];
+			// 	const newDirectory: string = inputText.split(' ')[1];
+			// 	if (newDirectory === '..') {
+			// 		directory = directory.split('\\').slice(0, -1).join('\\') + '\\';
+			// 	} else {
+			// 		directory = directory + newDirectory + '\\';
+			// 	}
+			// 	inputText = '';
+			// }
+			else if (inputText.trim().length === 0) {
+				const newLine: string = directory + inputText;
+				terminalText = [...terminalText, newLine];
+				terminalText = [...terminalText, ' '];
 				inputText = '';
 			} else {
-				const newLine: string = '> ' + inputText;
+				const newLine: string = directory + inputText;
 				terminalText = [...terminalText, newLine];
+				terminalText = [...terminalText, 'Bad command or file name.'];
+				terminalText = [...terminalText, ' '];
 				inputText = '';
 			}
 			e.preventDefault();
@@ -76,12 +97,14 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="container">
 	<div class="content">
-		<div class="monitor">
+		<div class="computer">
+			<img src={Computer} alt="" />
+
 			<div
 				class="terminal"
 				bind:this={terminal}
 				on:click={() => {
-					input.focus;
+					if (input) input.focus();
 				}}
 			>
 				{#if bootStage === 0}
@@ -105,9 +128,6 @@
 						{#if bootStage === 4}
 							<p>CDRPM : LITE-On LTB486S 48x Max</p>
 						{/if}
-						<span class="caret">█</span>
-						<p>Press F1 to continue, DEL to enter SETUP</p>
-						<p>07/21/97-i430TX-2A59ISM9C-00</p>
 					</div>
 				{:else if bootStage >= 6}
 					<table>
@@ -245,10 +265,13 @@
 						{#if bootStage === 10}
 							{#each terminalText as line}
 								<p>{line}</p>
+								{#if line === ' '}
+									<br />
+								{/if}
 							{/each}
 
 							<div class="command-line">
-								<span>C:\\</span>
+								<span>{directory}</span>
 								<input
 									bind:this={input}
 									type="text"
@@ -260,20 +283,16 @@
 					{/if}
 				{/if}
 			</div>
-			<div class="buttons">
-				<div class="buttons">
-					<div class="button1" />
-					<div class="button2" />
-				</div>
-			</div>
 		</div>
 
 		<div class="description">
-			<h1>MSDOS</h1>
-			<h2>1981</h2>
-			<p>
-				MSDOS is a command line interface. It was the first operating system to be used on IBM PCs.
-				It was released in 1981.
+			<h1 class="article-title">MSDOS & IBM PC 5150</h1>
+			<h2 class="article-subtitle">1981</h2>
+			<p class="article-text">
+				MS-DOS (Microsoft Disk Operating System) was the dominant operating system for IBM
+				PC-compatible computers in the 1980s and early 1990s. It played a crucial role in
+				popularizing personal computers and laid the foundation for the success of Microsoft
+				Windows.
 			</p>
 		</div>
 	</div>
@@ -287,61 +306,98 @@
 
 	.container {
 		display: flex;
-		flex-direction: column;
+		justify-content: center;
 		align-items: center;
-		padding: 20px;
-		position: relative;
-	}
-	.content {
-		width: min(500px, calc(100vw - 40px));
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-	.monitor {
-		background: rgb(143, 143, 141);
-		padding: 20px;
-		border-radius: 20px;
-		display: flex;
-		/* box-shadow: ; */
+		padding: var(--carousel-padding);
 		width: 100%;
+		height: 100lvh;
 		box-sizing: border-box;
+		background: linear-gradient(to bottom, #b8b8b8, rgb(63, 135, 53) 100%);
 	}
 
-	.buttons {
-		background-color: red;
+	.content {
+		width: var(--carousel-width);
+		max-width: 100%;
+		height: 100%;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		/* padding-top: 50px; */
 	}
 
-	.button1 {
-		width: 30px;
-		aspect-ratio: 1;
-		background-color: black;
-		border-radius: 50%;
+	.computer {
+		position: relative;
+		aspect-ratio: 1.3441;
+		max-width: 100%;
+		max-height: 100%;
 	}
+
+	.computer img {
+		width: 1000px;
+		max-width: 100%;
+		max-height: 100%;
+		/* background-color: green; */
+		z-index: 1;
+		pointer-events: none;
+	}
+
 	.description {
+		max-width: 100%;
+		width: 400px;
+		pointer-events: none;
+	}
+
+	.description h1 {
+		color: rgb(75, 236, 54);
+	}
+
+	.description h2 {
+		color: var(--text-color-primary);
+	}
+
+	.description h1 {
+		font-family: 'DOSVGA', monospace;
+	}
+
+	@media (max-width: 500px) {
+		h1 {
+			font-size: 20px;
+		}
+
+		h2 {
+			font-size: 15px;
+		}
+	}
+
+	@media (max-width: 1000px) {
+		.content {
+			flex-direction: column;
+		}
+		.description {
+			width: 100%;
+		}
 	}
 
 	.terminal {
-		font-family: 'DOSVGA', monospace;
-		font-size: 17px;
+		position: absolute;
+		width: 36.5%;
+		height: 35%;
+		left: 20%;
+		top: 12%;
+		padding: 3%;
 		background-color: black;
-		color: white;
-		padding: 20px;
+		background: radial-gradient(
+			circle at bottom center,
+			rgb(58, 56, 56) 0%,
+			rgb(30, 31, 31) 50%,
+			rgba(0, 0, 0, 1) 100%
+		);
 		box-sizing: border-box;
-		border-radius: 25px;
-		width: 100%;
-		aspect-ratio: 1;
 		overflow: hidden;
-		box-shadow: 0 0 50px 0px rgba(255, 255, 255, 0.2), 0 0 0 5px rgb(80, 80, 67);
-	}
-
-	.terminal p {
-		margin: 0;
-	}
-
-	.command-line {
-		display: flex;
-		width: 100%;
+		box-shadow: inset 0 0 50px 0 rgba(0, 0, 0, 0.5);
+		cursor: pointer;
 	}
 
 	.boot {
@@ -359,7 +415,6 @@
 		border: 1px solid white;
 		border-collapse: separate;
 		overflow: hidden;
-		/* white-space: nowrap; */
 	}
 
 	.PCI {
@@ -390,26 +445,27 @@
 		border-top: 1px solid white;
 	}
 
+	.command-line {
+		display: flex;
+		width: 100%;
+		justify-content: flex-start;
+	}
+
 	input {
 		background-color: transparent;
-		color: white;
-		width: 20px;
+		min-width: 20px;
 		outline: none;
 		border: none;
-		width: 100%;
+		/* width: 100%; */
 		overflow: hidden;
 		max-lines: 1;
 		font-family: 'DOSVGA', monospace;
 		font-size: 17px;
+		width: 100%;
+		cursor: pointer;
 	}
-
-	input::selection {
-		background-color: white;
-		color: black;
-	}
-
-	.terminal p::selection {
-		background-color: white;
+	.terminal *::selection {
+		background-color: rgb(75, 236, 54);
 		color: black;
 	}
 
@@ -430,6 +486,23 @@
 		}
 		100% {
 			opacity: 0;
+		}
+	}
+
+	.terminal *:not(br) {
+		font-family: 'DOSVGA', monospace;
+		margin: 0;
+		color: rgb(75, 236, 54);
+		font-size: 17px;
+	}
+
+	@media (max-width: 500px) {
+		.terminal *:not(br) {
+			font-size: 7px;
+		}
+
+		br {
+			display: none;
 		}
 	}
 </style>

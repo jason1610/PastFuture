@@ -21,9 +21,11 @@
 
 <header class={`${isAtTop ? 'top' : 'blur'}`}>
 	<div class="content">
-		<h1>PastFuture</h1>
-		<div class="right">
-			<a href="/os/windows">OS</a>
+		<div class="logo">
+			<a href="/">PastFuture</a>
+		</div>
+		<div class="links">
+			<a href="/computers">Computers</a>
 			<a href="https://1610.fr" target="_blank">1610</a>
 		</div>
 	</div>
@@ -41,7 +43,8 @@
 		align-items: center;
 		box-sizing: border-box;
 		transition: all 0.5s ease-in-out;
-		z-index: 100;
+		z-index: 1000;
+		pointer-events: none;
 	}
 
 	header.top {
@@ -53,6 +56,7 @@
 		background-color: rgba(0, 0, 0, 0.2);
 		backdrop-filter: blur(10px);
 		box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+		-webkit-backdrop-filter: blur(10px);
 	}
 
 	.content {
@@ -64,7 +68,7 @@
 		font-weight: 500;
 	}
 
-	.right {
+	.links {
 		display: flex;
 		gap: 20px;
 		margin-left: auto;
@@ -72,12 +76,14 @@
 		align-items: center;
 	}
 
-	h1 {
+	.logo a {
 		font-size: 1.3rem;
 		font-weight: 500;
 	}
 
 	a {
+		pointer-events: all;
+		color: var(--text-color-primary);
 		text-decoration: none;
 	}
 </style>
