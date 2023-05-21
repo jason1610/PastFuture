@@ -3,90 +3,126 @@
 	import Logo from './assets/MSDOS-boot-logo.png';
 	import Computer from './assets/5150.png';
 
-	let directory: string = 'C:\\';
+	let currentDirectory: string[] = ['C:'];
 	let inputText: string = '';
 	let terminalText: string[] = [''];
 	let input: HTMLSpanElement;
 	let terminal: HTMLDivElement;
 	let bootStage: number = 0;
+	let directories: { [key: string]: any } = {
+		'C:': {
+			WINDOWS: {
+				'system.ini': 'Your system is feeling a bit.ini today.',
+				MyDinoPics: {
+					't-rex.txt': 'An ASCII art of a T-rex.',
+					'triceratops.txt': 'ASCII art of a Triceratops.'
+				}
+			},
+			SYSTEM32: {
+				drivers: {
+					'audio.sys': 'Play that funky music, white DOS!'
+				},
+				'time-travel.bat':
+					'You run the program and...\n...nothing happens.\nBut maybe it worked yesterday?'
+			},
+			CONFIG: {
+				'dos.conf': "Trust me, I'm a .conf file!"
+			},
+			'hello.exe': 'Hello world!',
+			SECRET: {
+				'treasure_map.txt': 'A treasure map to the lost city of Atlantis.',
+				'diary.txt': 'Dear diary, today I was an emulator again.',
+				'busyboyfriend.txt':
+					'Dont make me sad, dont make me cry. Sometimes love is not enough and the road gets tough, I dont know why.Keep making me laugh Lets go get high. The road is long, we carry on. Try to have fun in the meantime.'
+			}
+		}
+	};
+
+	const getCurrentDirectoryObject = () => {
+		let current = directories;
+		for (let dir of currentDirectory) {
+			current = current[dir];
+		}
+		return current;
+	};
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (e.key === 'Enter') {
-			if (inputText === 'dir') {
-				const newLine: string = directory + inputText;
-				terminalText = [...terminalText, newLine];
-				terminalText = [...terminalText, 'WINDOWS'];
-				terminalText = [...terminalText, 'SYSTEM32'];
-				terminalText = [...terminalText, 'DRIVERS'];
-				terminalText = [...terminalText, 'CONFIG'];
-				terminalText = [...terminalText, 'AUTOEXEC.BAT'];
-				terminalText = [...terminalText, 'COMMAND.COM'];
-				terminalText = [...terminalText, 'CONFIG.SYS'];
-				terminalText = [...terminalText, 'IO.SYS'];
-				terminalText = [...terminalText, 'MSDOS.SYS'];
-				terminalText = [...terminalText, 'WIN.COM'];
-				terminalText = [...terminalText, 'WIN.INI'];
-				terminalText = [...terminalText, 'WINVER.EXE'];
-				terminalText = [...terminalText, 'WINVER.INI'];
-				terminalText = [...terminalText, 'WINVER.LOG'];
-				terminalText = [...terminalText, ' '];
-				inputText = '';
+			let parts = inputText.trim().split(' ');
+			let command = parts[0];
+			let argument = parts.slice(1).join(' ');
+			terminalText = [...terminalText, currentDirectory.join('\\') + '\\' + inputText];
+			if (command === 'dir') {
+				let currentDirObject = getCurrentDirectoryObject();
+				let newLines = Object.keys(currentDirObject);
+				terminalText = [...terminalText, ...newLines, ' '];
+			} else if (command === 'cd') {
+				let currentDirObject = getCurrentDirectoryObject();
+				if (argument === '..') {
+					if (currentDirectory.length > 1) {
+						currentDirectory = [...currentDirectory.slice(0, -1)];
+					}
+				} else if (currentDirObject[argument] && typeof currentDirObject[argument] === 'object') {
+					currentDirectory = [...currentDirectory, argument];
+				} else {
+					terminalText = [...terminalText, 'Invalid directory.', ' '];
+				}
+			} else if (command === 'execute' || command === 'run') {
+				let currentDirObject = getCurrentDirectoryObject();
+				if (currentDirObject[argument]) {
+					if (typeof currentDirObject[argument] === 'string') {
+						terminalText = [...terminalText, currentDirObject[argument], ' '];
+					} else {
+						terminalText = [...terminalText, 'Cannot execute directory.', ' '];
+					}
+				} else {
+					terminalText = [...terminalText, 'File not found.', ' '];
+				}
 			}
-			// else if (inputText.startsWith('cd')) {
-			// 	const newLine: string = '> ' + inputText;
+
+			// else if (inputText.trim().length === 0) {
+			// 	const newLine: string = directory + inputText;
 			// 	terminalText = [...terminalText, newLine];
-			// 	const newDirectory: string = inputText.split(' ')[1];
-			// 	if (newDirectory === '..') {
-			// 		directory = directory.split('\\').slice(0, -1).join('\\') + '\\';
-			// 	} else {
-			// 		directory = directory + newDirectory + '\\';
-			// 	}
+			// 	terminalText = [...terminalText, ' '];
 			// 	inputText = '';
+			// } else {
+			// 	const newLine: string = directory + inputText;
+			// 	terminalText = [...terminalText, newLine];
+			// 	terminalText = [...terminalText, 'Bad command or file name.'];
+			// 	terminalText = [...terminalText, ' '];
 			// }
-			else if (inputText.trim().length === 0) {
-				const newLine: string = directory + inputText;
-				terminalText = [...terminalText, newLine];
-				terminalText = [...terminalText, ' '];
-				inputText = '';
-			} else {
-				const newLine: string = directory + inputText;
-				terminalText = [...terminalText, newLine];
+			else {
 				terminalText = [...terminalText, 'Bad command or file name.'];
-				terminalText = [...terminalText, ' '];
-				inputText = '';
 			}
+			terminalText = [...terminalText, ' '];
+			inputText = '';
 			e.preventDefault();
 		}
 	};
 
 	const bootHandler = async () => {
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-		bootStage = 1;
-		await new Promise((resolve) => setTimeout(resolve, 400));
-		bootStage = 3;
-		await new Promise((resolve) => setTimeout(resolve, 1500));
-		bootStage = 4;
-		await new Promise((resolve) => setTimeout(resolve, 300));
-		bootStage = 5;
-		await new Promise((resolve) => setTimeout(resolve, 600));
-		bootStage = 6;
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-		bootStage = 7;
-		await new Promise((resolve) => setTimeout(resolve, 400));
-		bootStage = 8;
-		await new Promise((resolve) => setTimeout(resolve, 500));
-		bootStage = 9;
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+		// await new Promise((resolve) => setTimeout(resolve, 2000));
+		// bootStage = 1;
+		// await new Promise((resolve) => setTimeout(resolve, 400));
+		// bootStage = 3;
+		// await new Promise((resolve) => setTimeout(resolve, 1500));
+		// bootStage = 4;
+		// await new Promise((resolve) => setTimeout(resolve, 300));
+		// bootStage = 5;
+		// await new Promise((resolve) => setTimeout(resolve, 600));
+		// bootStage = 6;
+		// await new Promise((resolve) => setTimeout(resolve, 1000));
+		// bootStage = 7;
+		// await new Promise((resolve) => setTimeout(resolve, 400));
+		// bootStage = 8;
+		// await new Promise((resolve) => setTimeout(resolve, 500));
+		// bootStage = 9;
+		// await new Promise((resolve) => setTimeout(resolve, 1000));
 		bootStage = 10;
-	};
-
-	const scrollToEnd = () => {
-		terminal.scrollTop = terminal.scrollHeight;
 	};
 
 	onMount(() => {
 		bootHandler();
-		window.addEventListener('resize', scrollToEnd);
 	});
 
 	afterUpdate(() => {
@@ -262,6 +298,7 @@
 								<p>Testing extended memory.......</p>
 							{/if}
 						{/if}
+						<br />
 						{#if bootStage === 10}
 							{#each terminalText as line}
 								<p>{line}</p>
@@ -271,7 +308,7 @@
 							{/each}
 
 							<div class="command-line">
-								<span>{directory}</span>
+								<span>{currentDirectory.join('\\')}\</span>
 								<input
 									bind:this={input}
 									type="text"
@@ -387,6 +424,8 @@
 		left: 20%;
 		top: 12%;
 		padding: 3%;
+		padding-bottom: 1%;
+
 		background-color: black;
 		background: radial-gradient(
 			circle at bottom center,
@@ -448,7 +487,7 @@
 	.command-line {
 		display: flex;
 		width: 100%;
-		justify-content: flex-start;
+		justify-content: center;
 	}
 
 	input {
@@ -464,6 +503,7 @@
 		width: 100%;
 		cursor: pointer;
 	}
+
 	.terminal *::selection {
 		background-color: rgb(75, 236, 54);
 		color: black;
