@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Header from '../components/home/Header.svelte';
 	import Footer from '../components/home/Footer.svelte';
-	import Globals from '../globals.css';
+	// import Globals from '../globals.css';
 </script>
 
 <Header />
@@ -14,9 +14,7 @@
 	@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 	main {
-		overflow: hidden;
 		width: 100%;
-		min-height: 100vh;
 		min-height: 100lvh;
 		padding: 0;
 		margin: 0;

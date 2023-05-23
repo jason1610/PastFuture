@@ -21,7 +21,7 @@
 	}
 
 	.container {
-		background-color: #dee0d1;
+		background-color: #e4e4e4;
 		box-sizing: border-box;
 		display: flex;
 		flex-direction: column;

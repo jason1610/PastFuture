@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 
 	let isAtTop: boolean = true;
+	let onMobile: boolean = false;
 
 	const handleScroll = () => {
 		if (window.scrollY > 0) {
@@ -12,6 +13,10 @@
 	};
 
 	onMount(() => {
+		if (window.innerWidth < 800) {
+			onMobile = true;
+		}
+
 		window.addEventListener('scroll', handleScroll);
 		return () => {
 			window.removeEventListener('scroll', handleScroll);
@@ -19,13 +24,12 @@
 	});
 </script>
 
-<header class={`${isAtTop ? 'top' : 'blur'}`}>
+<header class={`${isAtTop ? 'top' : 'scroll'}` + `${onMobile ? ' mobile' : ''}`}>
 	<div class="content">
 		<div class="logo">
 			<a href="/">PastFuture</a>
 		</div>
 		<div class="links">
-			<a href="/computers">Computers</a>
 			<a href="https://1610.fr" target="_blank">1610</a>
 		</div>
 	</div>
@@ -48,15 +52,27 @@
 	}
 
 	header.top {
-		height: 100px;
+		height: 90px;
 		background-color: transparent;
 	}
 
-	header.blur {
+	header.scroll {
 		background-color: rgba(0, 0, 0, 0.2);
 		backdrop-filter: blur(10px);
 		box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
 		-webkit-backdrop-filter: blur(10px);
+	}
+
+	header.mobile {
+		background-color: transparent;
+	}
+
+	header.mobile.top {
+		height: 60px;
+	}
+
+	header.mobile.scroll {
+		opacity: 0;
 	}
 
 	.content {
@@ -79,6 +95,7 @@
 	.logo a {
 		font-size: 1.3rem;
 		font-weight: 500;
+		text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 	}
 
 	a {

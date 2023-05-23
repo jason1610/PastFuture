@@ -17,22 +17,44 @@
 	import Help from './assets/xp-help.png';
 	import Off from './assets/xp-off.png';
 	import Key from './assets/xp-key.png';
+	import Close from './assets/xp-close.png';
+	import Minimize from './assets/xp-minimize.png';
+	import Window from './assets/xp-window.png';
 
 	const fileSize: number = 80;
 
+	let article: string =
+		'VVVVVVVVVVVVVVVVVVV\n>>>WINDOWS XP<<<\n^^^^^^^^^^^^^^\n2001\n\nWindows XP is considered one of Microsofts most successful operating systems. It combined the reliability and security of professional-grade operating systems with the usability and compatibility features that made consumer-grade systems popular. XP introduced features like a revamped GUI, fast user switching, and system restore, all of which contributed to its broad adoption. Its longevity also made it noteworthy; despite subsequent OS releases, XP remained in use in many sectors for well over a decade.';
+	let stickyOffset: number = 0;
 	let desktop: HTMLDivElement;
-	let windowWidth: number;
 	let screen: HTMLDivElement;
 	let startMenuOpen: boolean = false;
+	let openedStartMenu: boolean = false;
+	let oldPosition: { x: number; y: number } = { x: 0, y: 0 };
 	let draggingFile: number = -1;
 	let desktopRect: DOMRect;
 	let offset: { x: number; y: number } = { x: 0, y: 0 };
-	let openedStartMenu: boolean = false;
-	let oldPosition: { x: number; y: number } = { x: 0, y: 0 };
 	let desktopFiles: { x: number; y: number; name: string; img: string }[] = [
 		{ x: 0, y: 0, name: 'Recycle Bin', img: `${Recycling}` },
-		{ x: fileSize, y: 0, name: 'Internet', img: `${IE}` }
+		{ x: fileSize * 2, y: fileSize * 2, name: 'Internet', img: `${IE}` },
+		{ x: fileSize * 3, y: fileSize * 3, name: 'Notepad', img: `${Notepad}` }
 	];
+	let draggingWindow: boolean = false;
+	let openedNotepad: boolean = true;
+	let minimizedNotepad: boolean = false;
+	let lastNotePadData: { x: number; y: number; width: number; height: number } = {
+		x: 0,
+		y: 0,
+		width: 0,
+		height: 0
+	};
+	let maximizedNotepad: boolean = false;
+	let notepad: { x: number; y: number; width: number; height: number } = {
+		x: fileSize * 4,
+		y: 0,
+		width: 400,
+		height: 400
+	};
 
 	const handleStartButton = () => {
 		startMenuOpen = !startMenuOpen;
@@ -56,28 +78,13 @@
 		};
 	};
 
-	const dragStart = (e: MouseEvent, file: number) => {
-		// if (e.target instanceof HTMLParagraphElement) return;
+	const dragFileStart = (e: MouseEvent, file: number) => {
 		desktopRect = desktop.getBoundingClientRect();
 		oldPosition = snapToGrid({ x: e.clientX - desktopRect.left, y: e.clientY - desktopRect.top });
 		draggingFile = file;
 		offset = {
 			x: e.clientX - desktopRect.left - oldPosition.x,
 			y: e.clientY - desktopRect.top - oldPosition.y
-		};
-	};
-
-	const touchDragStart = (e: TouchEvent, file: number) => {
-		e.preventDefault();
-		desktopRect = desktop.getBoundingClientRect();
-		oldPosition = snapToGrid({
-			x: e.touches[0].clientX - desktopRect.left,
-			y: e.touches[0].clientY - desktopRect.top
-		});
-		draggingFile = file;
-		offset = {
-			x: e.touches[0].clientX - desktopRect.left - oldPosition.x,
-			y: e.touches[0].clientY - desktopRect.top - oldPosition.y
 		};
 	};
 
@@ -94,209 +101,351 @@
 				newFile,
 				...desktopFiles.slice(draggingFile + 1)
 			];
+		} else if (draggingWindow) {
+			notepad = {
+				x: e.clientX - offset.x,
+				y: e.clientY - offset.y,
+				width: notepad.width,
+				height: notepad.height
+			};
 		}
 	};
 
-	const touchDrag = (e: TouchEvent) => {
-		if (draggingFile !== -1) {
-			const newFile: { x: number; y: number; name: string; img: string } = {
-				x: e.touches[0].clientX - desktopRect.left - offset.x,
-				y: e.touches[0].clientY - desktopRect.top - offset.y,
-				name: desktopFiles[draggingFile].name,
-				img: desktopFiles[draggingFile].img
-			};
-			desktopFiles = [
-				...desktopFiles.slice(0, draggingFile),
-				newFile,
-				...desktopFiles.slice(draggingFile + 1)
-			];
-		}
-	};
+	// const touchDrag = (e: TouchEvent, file: number) => {
+	// 	e.preventDefault();
+	// 	if (draggingFile === -1) {
+	// 		desktopRect = desktop.getBoundingClientRect();
+	// 		oldPosition = snapToGrid({
+	// 			x: e.touches[0].clientX - desktopRect.left,
+	// 			y: e.touches[0].clientY - desktopRect.top
+	// 		});
+	// 		draggingFile = file;
+	// 		offset = {
+	// 			x: e.touches[0].clientX - desktopRect.left - oldPosition.x,
+	// 			y: e.touches[0].clientY - desktopRect.top - oldPosition.y
+	// 		};
+
+	// 		const newFile: { x: number; y: number; name: string; img: string } = {
+	// 			x: e.touches[0].clientX - desktopRect.left - offset.x,
+	// 			y: e.touches[0].clientY - desktopRect.top - offset.y,
+	// 			name: desktopFiles[draggingFile].name,
+	// 			img: desktopFiles[draggingFile].img
+	// 		};
+	// 		desktopFiles = [
+	// 			...desktopFiles.slice(0, draggingFile),
+	// 			newFile,
+	// 			...desktopFiles.slice(draggingFile + 1)
+	// 		];
+	// 	}
+	// };
 
 	const dragEnd = () => {
-		if (draggingFile === -1) return;
+		if (draggingFile !== -1) {
+			const snapPosition = snapToGrid({
+				x: desktopFiles[draggingFile].x + offset.x,
+				y: desktopFiles[draggingFile].y + offset.y
+			});
 
-		const snapPosition = snapToGrid({
-			x: desktopFiles[draggingFile].x + offset.x,
-			y: desktopFiles[draggingFile].y + offset.y
-		});
-
-		if (
-			desktopFiles[draggingFile].x + offset.x < 0 ||
-			desktopFiles[draggingFile].x - 80 > desktopRect.width ||
-			desktopFiles[draggingFile].y + offset.y < 0 ||
-			desktopFiles[draggingFile].y > desktopRect.height ||
-			desktopFiles.some(
-				(file, index) =>
-					index !== draggingFile && file.x === snapPosition.x && file.y === snapPosition.y
-			)
-		) {
-			desktopFiles = [
-				...desktopFiles.slice(0, draggingFile),
-				{ ...desktopFiles[draggingFile], x: oldPosition.x, y: oldPosition.y },
-				...desktopFiles.slice(draggingFile + 1)
-			];
-		} else {
-			desktopFiles = [
-				...desktopFiles.slice(0, draggingFile),
-				{ ...desktopFiles[draggingFile], x: snapPosition.x, y: snapPosition.y },
-				...desktopFiles.slice(draggingFile + 1)
-			];
+			if (
+				desktopFiles[draggingFile].x + offset.x < 0 ||
+				desktopFiles[draggingFile].x > desktopRect.width ||
+				desktopFiles[draggingFile].y + offset.y < 0 ||
+				desktopFiles[draggingFile].y > desktopRect.height ||
+				desktopFiles.some(
+					(file, index) =>
+						index !== draggingFile && file.x === snapPosition.x && file.y === snapPosition.y
+				)
+			) {
+				desktopFiles = [
+					...desktopFiles.slice(0, draggingFile),
+					{ ...desktopFiles[draggingFile], x: oldPosition.x, y: oldPosition.y },
+					...desktopFiles.slice(draggingFile + 1)
+				];
+			} else {
+				desktopFiles = [
+					...desktopFiles.slice(0, draggingFile),
+					{ ...desktopFiles[draggingFile], x: snapPosition.x, y: snapPosition.y },
+					...desktopFiles.slice(draggingFile + 1)
+				];
+			}
 		}
 
+		if (!draggingWindow) {
+			//stuff
+		}
+
+		draggingWindow = false;
 		draggingFile = -1;
 	};
 
-	const setWindowWidth = () => {
-		windowWidth = window.innerWidth;
+	const handleStickyOffset = () => {
+		const screenHeight = screen.getBoundingClientRect().height;
+		const viewportHeight = window.innerHeight;
+		stickyOffset = viewportHeight - screenHeight + window.scrollY;
+		if (stickyOffset > 0) stickyOffset = 0;
+	};
+
+	const getDesktopSize = () => {
+		desktopRect = desktop.getBoundingClientRect();
+		desktopFiles = desktopFiles.map((file) => {
+			if (file.x < 0) file.x = 0;
+			if (file.x > desktopRect.width - fileSize) file.x = desktopRect.width - fileSize;
+			if (file.y < 0) file.y = 0;
+			if (file.y > desktopRect.height - fileSize) file.y = desktopRect.height - fileSize;
+			return file;
+		});
+
+		if (notepad.width > desktopRect.width) notepad.width = desktopRect.width;
+		if (notepad.height > desktopRect.height) notepad.height = desktopRect.height;
+
+		if (notepad.x < 0) notepad.x = 0;
+		if (notepad.x > desktopRect.width - notepad.width) {
+			notepad.x = desktopRect.width - notepad.width;
+		}
+		if (notepad.y < 0) notepad.y = 0;
+		if (notepad.y > desktopRect.height - notepad.height) {
+			notepad.y = desktopRect.height - notepad.height;
+		}
+	};
+
+	const dragWindowStart = (e: MouseEvent) => {
+		if (e.target instanceof HTMLButtonElement) return;
+		if (e.target instanceof HTMLImageElement) return;
+		draggingWindow = true;
+		offset = {
+			x: e.clientX - notepad.x,
+			y: e.clientY - notepad.y
+		};
+	};
+
+	const maximize = () => {
+		if (!maximizedNotepad) {
+			lastNotePadData = { ...notepad };
+			notepad = {
+				x: 0,
+				y: 0,
+				width: desktopRect.width,
+				height: desktopRect.height
+			};
+		} else {
+			notepad = { ...lastNotePadData };
+		}
+
+		maximizedNotepad = !maximizedNotepad;
 	};
 
 	onMount(() => {
-		setWindowWidth();
-		window.addEventListener('resize', setWindowWidth);
+		getDesktopSize();
+		handleStickyOffset;
+		window.addEventListener('resize', () => {
+			getDesktopSize();
+			handleStickyOffset();
+		});
+		window.addEventListener('scroll', handleStickyOffset);
 		window.addEventListener('mousemove', drag);
-		window.addEventListener('touchmove', touchDrag, { passive: false });
 		window.addEventListener('mouseup', dragEnd);
-		window.addEventListener('touchend', dragEnd);
+
 		return () => {
+			window.removeEventListener('resize', () => {
+				getDesktopSize();
+				handleStickyOffset();
+			});
+			window.removeEventListener('scroll', handleStickyOffset);
 			window.removeEventListener('mousemove', drag);
 			window.removeEventListener('mouseup', dragEnd);
-			window.removeEventListener('resize', () => setWindowWidth);
 		};
 	});
 </script>
 
-<div class="container">
-	<!-- svelte-ignore a11y-click-events-have-key-events -->
-	<div class="content">
-		<div class="screen" bind:this={screen} on:click={handleScreenClick}>
-			<div class="desktop" bind:this={desktop}>
-				{#if draggingFile !== -1}
-					<div class="file" style={`left:${oldPosition.x}px; top:${oldPosition.y}px; `}>
-						<img src={desktopFiles[draggingFile].img} alt="" draggable="false" />
-						<p style="background-color: rgba(40,100,200,0.9);">
-							{desktopFiles[draggingFile].name}
-						</p>
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div class="screen" bind:this={screen} on:click={handleScreenClick}>
+	<div class="desktop" bind:this={desktop}>
+		{#if openedNotepad && !minimizedNotepad}
+			<div
+				class="window"
+				style={`left: ${notepad.x}px; top: ${notepad.y}px;   width: ${notepad.width}px; height: ${notepad.height}px;`}
+			>
+				<div class="title-bar swiper-no-swiping" on:mousedown={(e) => dragWindowStart(e)}>
+					<div class="title-bar-text">
+						<img src={Notepad} alt="" draggable="false" />
+						<span>Untitled - Notepad</span>
 					</div>
-				{/if}
+					<div class="controls">
+						<button
+							on:click={() => {
+								minimizedNotepad = !minimizedNotepad;
+							}}
+						>
+							<img src={Minimize} alt="" draggable="false" />
+						</button>
+						<button
+							on:click={() => {
+								maximize();
+							}}
+						>
+							<img src={Window} alt="" draggable="false" />
+						</button>
+						<button on:click={() => (openedNotepad = false)}>
+							<img src={Close} alt="" draggable="false" />
+						</button>
+					</div>
+				</div>
+				<div class="window-body">
+					<textarea bind:value={article} />
 
-				{#each desktopFiles as file, index (file)}
-					<div
-						class="file"
-						style={`left:${desktopFiles[index].x}px; top:${desktopFiles[index].y}px;`}
-						on:mousedown={(e) => dragStart(e, index)}
-						on:touchstart={(e) => touchDragStart(e, index)}
-					>
-						<img src={file.img} alt={file.name} draggable="false" />
+					<div class="article">
+						<!-- <h1>Windows XP</h1>
+						<h2>2001</h2> -->
+						<!-- <p>WINDOWS X</p>
+						<p>2001</p>
 						<p>
-							{file.name}
-						</p>
+							Windows XP is considered one of Microsoft's most successful operating systems. It
+							combined the reliability and security of professional-grade operating systems with the
+							usability and compatibility features that made consumer-grade systems popular. XP
+							introduced features like a revamped GUI, fast user switching, and system restore, all
+							of which contributed to its broad adoption. Its longevity also made it noteworthy;
+							despite subsequent OS releases, XP remained in use in many sectors for well over a
+							decade.
+						</p> -->
 					</div>
-				{/each}
-				{#if startMenuOpen}
-					<div class="menu">
-						<div class="top">
-							<div class="profile">
-								<img src={Profile} alt="" draggable="false" />
-							</div>
-							<h2>Admin</h2>
-						</div>
-						<div class="orange" />
-						<div class="list-container">
-							<div class="list-left">
-								<div class="item">
-									<img src={IE} alt="" draggable="false" />
-									<div class="text">
-										<p>Internet</p>
-										<p>Internet Explorer</p>
-									</div>
-								</div>
-								<div class="seperator" />
-								<div class="item">
-									<img src={Notepad} alt="" draggable="false" />
-									<p>Notepad</p>
-								</div>
-								<div class="item">
-									<img src={Minesweeper} alt="" draggable="false" />
-									<p>Minesweeper</p>
-								</div>
-								{#if windowWidth > 600}
-									<div class="item">
-										<img src={MSN} alt="" draggable="false" />
-										<p>MSN</p>
-									</div>
-								{/if}>
-								<div class="seperator" style="margin-top: auto; " />
-								<div class="all-programs">
-									<p>All Programs</p>
-									<img src={Programs} alt="" />
-								</div>
-							</div>
-							<div class="list-right">
-								<div class="small-item">
-									<img src={Documents} alt="" />
-									<p>My Documents</p>
-								</div>
-								<div class="small-item">
-									<img src={Pictures} alt="" />
-									<p>My Pictures</p>
-								</div>
-								<div class="small-item">
-									<img src={Music} alt="" />
-									<p>My Music</p>
-								</div>
-								{#if windowWidth > 600}
-									<div class="small-item">
-										<img src={Favorites} alt="" />
-										<p>My Favorites</p>
-									</div>
-								{/if}
-								<div class="seperator" />
-								<div class="small-item">
-									<img src={Help} alt="" />
-									<p>Help</p>
-								</div>
-							</div>
-						</div>
-						<div class="bottom">
-							<button>
-								<img src={Key} alt="" />
-							</button>
-							<p>Log Off</p>
-							<button style="margin-left: 5px;">
-								<img src={Off} alt="" />
-							</button>
-							<p>Turn Off Computer</p>
-						</div>
-						<!-- <div id="start-menu-close" on:click={closeStartMenu}>X</div>
-					<div id="start-menu-content">Start Menu Content</div> -->
-					</div>
-				{/if}
-			</div>
-			<div class="taskbar">
-				<button
-					class="start"
-					on:click={handleStartButton}
-					style={`${startMenuOpen ? 'filter: brightness(0.95)' : ''}`}
-				>
-					<img src={Start} alt="start" draggable="false" />
-				</button>
-				<div class="tray">
-					<img src={Virus} alt="" draggable="false" />
-					<img src={Volume} alt="" draggable="false" />
-					<p>4:23 AM</p>
 				</div>
 			</div>
+		{/if}
+
+		{#if draggingFile !== -1}
+			<div class="file" style={`left:${oldPosition.x}px; top:${oldPosition.y}px; `}>
+				<img src={desktopFiles[draggingFile].img} alt="" draggable="false" />
+				<p style="background-color: rgba(40,100,200,0.9);">
+					{desktopFiles[draggingFile].name}
+				</p>
+			</div>
+		{/if}
+
+		{#each desktopFiles as file, index (file)}
+			<button
+				on:click={() => {
+					if (file.name === 'Notepad') {
+						openedNotepad = true;
+						minimizedNotepad = false;
+					}
+				}}
+				class="file swiper-no-swiping"
+				style={`left:${desktopFiles[index].x}px; top:${desktopFiles[index].y}px;`}
+				on:mousedown={(e) => dragFileStart(e, index)}
+			>
+				<img src={file.img} alt={file.name} draggable="false" />
+				<p>
+					{file.name}
+				</p>
+			</button>
+		{/each}
+	</div>
+	<!-- <div class="sticky" style={`transform: translateY( ${stickyOffset}px);`}> -->
+	{#if startMenuOpen}
+		<div class="menu">
+			<div class="top">
+				<div class="profile">
+					<img src={Profile} alt="" draggable="false" />
+				</div>
+				<h2>Admin</h2>
+			</div>
+			<div class="orange" />
+			<div class="list-container">
+				<div class="list-left">
+					<div class="item">
+						<img src={IE} alt="" draggable="false" />
+						<div class="text">
+							<p>Internet</p>
+							<p>Internet Explorer</p>
+						</div>
+					</div>
+					<div class="seperator" />
+					<div class="item">
+						<img src={Notepad} alt="" draggable="false" />
+						<p>Notepad</p>
+					</div>
+					<div class="item">
+						<img src={Minesweeper} alt="" draggable="false" />
+						<p>Minesweeper</p>
+					</div>
+					<div class="item">
+						<img src={MSN} alt="" draggable="false" />
+						<p>MSN</p>
+					</div>
+					<div class="seperator" style="margin-top: auto; " />
+					<div class="all-programs">
+						<p>All Programs</p>
+						<img src={Programs} alt="" />
+					</div>
+				</div>
+				<div class="list-right">
+					<div class="small-item">
+						<img src={Documents} alt="" />
+						<p>My Documents</p>
+					</div>
+					<div class="small-item">
+						<img src={Pictures} alt="" />
+						<p>My Pictures</p>
+					</div>
+					<div class="small-item">
+						<img src={Music} alt="" />
+						<p>My Music</p>
+					</div>
+
+					<div class="small-item">
+						<img src={Favorites} alt="" />
+						<p>My Favorites</p>
+					</div>
+
+					<div class="seperator" />
+					<div class="small-item">
+						<img src={Help} alt="" />
+						<p>Help</p>
+					</div>
+				</div>
+			</div>
+			<div class="bottom">
+				<button>
+					<img src={Key} alt="" />
+				</button>
+				<p>Log Off</p>
+				<button style="margin-left: 5px;">
+					<img src={Off} alt="" />
+				</button>
+				<p>Turn Off Computer</p>
+			</div>
 		</div>
-		<div class="description">
-			<h1>Windows XP</h1>
-			<p>
-				Windows XP is a graphical operating system. It was released in 2001. It was the first
-				consumer version of Windows to be built on the Windows NT kernel. It was also the first
-				version of Windows to use product activation to combat software piracy.
-			</p>
+	{/if}
+
+	<div class="taskbar">
+		<button
+			class="start"
+			on:click={handleStartButton}
+			style={`${startMenuOpen ? 'filter: brightness(0.95)' : ''}`}
+		>
+			<img src={Start} alt="start" draggable="false" />
+		</button>
+		<div class="tabs">
+			{#if openedNotepad}
+				<button
+					class={`notepad-tab ${minimizedNotepad ? 'minimized' : ''}`}
+					on:click={() => {
+						minimizedNotepad = !minimizedNotepad;
+					}}
+				>
+					<img src={Notepad} alt="" draggable="false" />
+					<span>Notepad</span>
+				</button>
+			{/if}
+		</div>
+
+		<div class="tray">
+			<img src={Virus} alt="" draggable="false" />
+			<img src={Volume} alt="" draggable="false" />
+			<p>4:23 AM</p>
 		</div>
 	</div>
+	<!-- </div> -->
 </div>
 
 <style>
@@ -314,52 +463,52 @@
 		src: url('./assets/Tahoma-bold.ttf');
 	}
 
-	.container {
-		display: flex;
-		justify-content: center;
-		padding: var(--section-padding);
-		width: 100%;
-		box-sizing: border-box;
-	}
-
-	.content {
-		width: 900px;
-		max-width: 100%;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
 	.screen {
-		width: 100%;
-		/* width: min(600px, calc(100vw - 40px)); */
-		aspect-ratio: 4/3;
-		background-color: rgb(37, 33, 33);
-		position: relative;
+		padding: var(--carousel-padding);
+		box-sizing: border-box;
 		display: flex;
+		background: linear-gradient(to top, #b8b8b8 5%, white 30%, white 40%, #49869e);
 		flex-direction: column;
-		justify-content: flex-end;
+		width: 100%;
+		min-height: 100svh;
+		height: 100%;
+		align-items: center;
+		justify-content: center;
+		cursor: default;
 		background-image: url('./assets/xp-background.jpg');
 		background-size: cover;
 		background-position: center;
-		overflow: hidden;
-		box-sizing: border-box;
-		font-family: Tahoma, sans-serif;
+		font-family: 'Tahoma', sans-serif;
 		-webkit-user-select: none;
 		-khtml-user-select: none;
 		-moz-user-select: none;
 		-o-user-select: none;
 		user-select: none;
+		z-index: -1;
 	}
 
 	.desktop {
+		position: relative;
 		width: 100%;
 		height: 100%;
-		position: relative;
-		overflow: hidden;
+		z-index: -1;
+	}
+
+	.sticky {
+		position: absolute;
+		bottom: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+	}
+
+	.sticky * {
+		pointer-events: all;
 	}
 
 	.taskbar {
+		position: absolute;
+		bottom: 0;
 		width: 100%;
 		height: 35px;
 		background-color: hsl(221, 73%, 50%);
@@ -372,10 +521,210 @@
 		);
 		display: flex;
 		align-items: center;
-		overflow: hidden;
+		/* overflow: hidden; */
 		z-index: 1;
 	}
 
+	.tabs {
+		height: 100%;
+		padding: 2px;
+		box-sizing: border-box;
+		margin-left: 10px;
+	}
+	.notepad-tab {
+		height: 100%;
+		width: 150px;
+		max-width: 100%;
+		border-radius: 5px;
+		background: linear-gradient(
+			hsl(223, 59%, 40%) 0%,
+			hsl(214, 60%, 39%) 5%,
+			hsl(207, 58%, 34%) 18%,
+			hsl(221, 77%, 36%) 100%
+		);
+		box-shadow: inset -1px -1px 1px 1px #134cb6, inset 1px 0px 1px 1px #134cb665;
+		border: none;
+		display: flex;
+		align-items: center;
+		padding: 5px 5px;
+		overflow: hidden;
+		cursor: pointer;
+	}
+
+	.notepad-tab span {
+		color: white;
+		white-space: nowrap;
+		font-family: 'Tahoma Pixel', sans-serif;
+		font-size: 17px;
+		margin-left: 5px;
+	}
+
+	.notepad-tab.minimized {
+		background: linear-gradient(
+			hsl(223, 71%, 57%) 0%,
+			hsl(214, 60%, 53%) 5%,
+			hsl(207, 54%, 48%) 18%,
+			hsl(221, 73%, 50%) 100%
+		);
+	}
+
+	.notepad-tab img {
+		height: 100%;
+		aspect-ratio: 1;
+		object-fit: contain;
+	}
+
+	.window {
+		position: absolute;
+		max-width: 100%;
+		max-height: 100%;
+		background: linear-gradient(
+			hsl(223, 72%, 49%) 0%,
+			hsl(214, 73%, 58%) 5%,
+			hsl(223, 72%, 49%) 18%,
+			hsl(221, 73%, 50%) 90%,
+			hsl(222, 74%, 35%) 100%
+		);
+		border-radius: 10px 10px 0 0;
+		overflow: hidden;
+		z-index: 10;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		z-index: -1;
+	}
+
+	.window-body {
+		background: white;
+		width: calc(100% - 6px);
+		height: 100%;
+		margin-bottom: 3px;
+		box-sizing: border-box;
+		color: black;
+		line-height: 0.9;
+		font-family: 'Tahoma Pixel', sans-serif;
+		font-size: 22px;
+		line-height: 0.9;
+		padding: 5px;
+		cursor: text;
+		border: transparent;
+		padding-right: 0;
+	}
+
+	.window-body * {
+		color: black;
+	}
+
+	.window-body *::selection {
+		background-color: #0075dc;
+		color: white;
+	}
+
+	.article p {
+		font-size: 20px;
+	}
+
+	.window-body:focus {
+		outline: none;
+	}
+
+	.window-body textarea {
+		width: 100%;
+		height: 100%;
+		border: none;
+		resize: none;
+		padding: 5px;
+		box-sizing: border-box;
+		font-family: 'Tahoma Pixel', sans-serif;
+		font-size: 22px;
+		background: transparent;
+		color: black;
+	}
+
+	.window-body textarea:focus {
+		outline: none;
+	}
+
+	.window-body textarea::selection {
+		background-color: #0075dc;
+		color: white;
+	}
+
+	.title-bar {
+		width: 100%;
+		height: 35px;
+		background: linear-gradient(
+			hsl(223, 72%, 49%) 0%,
+			hsl(214, 73%, 58%) 5%,
+			hsl(223, 72%, 49%) 18%,
+			hsl(221, 73%, 50%) 90%,
+			hsl(222, 74%, 35%) 100%
+		);
+		font-family: 'Tahoma', sans-serif;
+		box-sizing: border-box;
+		display: flex;
+		padding: 0 5px;
+		align-items: center;
+	}
+
+	.title-bar-text {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		height: 100%;
+		padding: 5px;
+		box-sizing: border-box;
+		font-size: 14px;
+		pointer-events: none;
+	}
+
+	.title-bar-text img {
+		height: 90%;
+		aspect-ratio: 1;
+		object-fit: contain;
+		box-sizing: border-box;
+	}
+
+	.controls {
+		margin-left: auto;
+		display: flex;
+		gap: 5px;
+		height: 100%;
+		padding: 5px 0;
+		box-sizing: border-box;
+	}
+
+	.controls button {
+		height: 100%;
+		aspect-ratio: 1;
+		border-radius: 3px;
+		border: 1px solid white;
+		background-color: white;
+		padding: 0;
+	}
+
+	.controls button:hover {
+		filter: brightness(1.1);
+	}
+
+	.controls button img {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+
+	.controls button {
+		background-color: #216bf9;
+		background-image: linear-gradient(160deg, hsl(217, 37%, 75%) 0%, transparent 40%);
+		box-shadow: inset 0px 0px 5px 1px #134cb6;
+		cursor: pointer;
+	}
+
+	.controls button:nth-child(3) {
+		background-color: #e46138;
+		background-image: linear-gradient(160deg, hsl(17, 86%, 89%) 0%, transparent 35%);
+		box-shadow: inset 0px 0px 5px 1px #a73f1f;
+	}
 	.start {
 		height: 100%;
 		width: 90px;
@@ -442,7 +791,7 @@
 
 	.menu {
 		position: absolute;
-		bottom: 0;
+		bottom: 35px;
 		left: 0;
 		width: 300px;
 		height: min(350px, 85%);
@@ -463,10 +812,12 @@
 			hsl(223, 72%, 49%) 99%,
 			hsl(223, 76%, 29%) 100%
 		);
+		z-index: -1;
 	}
 
 	.menu .top {
 		height: 70px;
+
 		display: flex;
 		align-items: center;
 		padding: 0 5px;
@@ -532,6 +883,9 @@
 		justify-content: center;
 		align-items: center;
 		flex-direction: column;
+		z-index: -2;
+		border: 0;
+		background-color: transparent;
 	}
 
 	.file img {
@@ -541,6 +895,7 @@
 	}
 
 	.file p {
+		color: white;
 		text-shadow: 1px 1px 3px hsla(0, 0%, 0%, 1);
 		width: 100%;
 		margin: 0;
@@ -582,11 +937,6 @@
 		background-color: #cce1fa;
 		box-shadow: -1px 0px 0px 0px #a4bfdd;
 		box-sizing: border-box;
-	}
-
-	.group {
-		/* overflow: scroll; */
-		flex-shrink: 1;
 	}
 
 	.item {

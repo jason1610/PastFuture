@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { onMount, afterUpdate } from 'svelte';
-	import Logo from './assets/MSDOS-boot-logo.png';
 	import Computer from './assets/5150.png';
 
-	let currentDirectory: string[] = ['C:'];
+	let currentDirectory: string[] = ['A:'];
 	let inputText: string = '';
 	let terminalText: string[] = [''];
 	let input: HTMLSpanElement;
 	let terminal: HTMLDivElement;
 	let bootStage: number = 0;
+	let memory: number = 0;
 	let directories: { [key: string]: any } = {
-		'C:': {
+		'A:': {
 			WINDOWS: {
 				'system.ini': 'Your system is feeling a bit.ini today.',
 				MyDinoPics: {
@@ -30,8 +30,8 @@
 			},
 			'hello.exe': 'Hello world!',
 			SECRET: {
-				'treasure_map.txt': 'A treasure map to the lost city of Atlantis.',
-				'diary.txt': 'Dear diary, today I was an emulator again.',
+				'Atlantis.txt': 'I found Atlantis!',
+				'diary.txt': 'Dear diary, I am going to find Atlantis.',
 				'busyboyfriend.txt':
 					'Dont make me sad, dont make me cry. Sometimes love is not enough and the road gets tough, I dont know why.Keep making me laugh Lets go get high. The road is long, we carry on. Try to have fun in the meantime.'
 			}
@@ -55,7 +55,7 @@
 			if (command === 'dir') {
 				let currentDirObject = getCurrentDirectoryObject();
 				let newLines = Object.keys(currentDirObject);
-				terminalText = [...terminalText, ...newLines, ' '];
+				terminalText = [...terminalText, ...newLines];
 			} else if (command === 'cd') {
 				let currentDirObject = getCurrentDirectoryObject();
 				if (argument === '..') {
@@ -65,33 +65,27 @@
 				} else if (currentDirObject[argument] && typeof currentDirObject[argument] === 'object') {
 					currentDirectory = [...currentDirectory, argument];
 				} else {
-					terminalText = [...terminalText, 'Invalid directory.', ' '];
+					terminalText = [...terminalText, 'Invalid directory.'];
 				}
-			} else if (command === 'execute' || command === 'run') {
+			} else if (command === 'run') {
 				let currentDirObject = getCurrentDirectoryObject();
 				if (currentDirObject[argument]) {
 					if (typeof currentDirObject[argument] === 'string') {
-						terminalText = [...terminalText, currentDirObject[argument], ' '];
+						terminalText = [...terminalText, currentDirObject[argument]];
 					} else {
-						terminalText = [...terminalText, 'Cannot execute directory.', ' '];
+						terminalText = [...terminalText, 'Cannot execute directory.'];
 					}
 				} else {
-					terminalText = [...terminalText, 'File not found.', ' '];
+					terminalText = [...terminalText, 'File not found.'];
 				}
-			}
-
-			// else if (inputText.trim().length === 0) {
-			// 	const newLine: string = directory + inputText;
-			// 	terminalText = [...terminalText, newLine];
-			// 	terminalText = [...terminalText, ' '];
-			// 	inputText = '';
-			// } else {
-			// 	const newLine: string = directory + inputText;
-			// 	terminalText = [...terminalText, newLine];
-			// 	terminalText = [...terminalText, 'Bad command or file name.'];
-			// 	terminalText = [...terminalText, ' '];
-			// }
-			else {
+			} else if (command === 'help') {
+				terminalText = [
+					...terminalText,
+					'dir - list files and directories in the current directory.'
+				];
+				terminalText = [...terminalText, 'cd - change directory.'];
+				terminalText = [...terminalText, 'run - run a file.'];
+			} else {
 				terminalText = [...terminalText, 'Bad command or file name.'];
 			}
 			terminalText = [...terminalText, ' '];
@@ -100,29 +94,31 @@
 		}
 	};
 
+	// function that counts the memory up to 65536
+	const countUp = () => {
+		if (memory < 81152) {
+			memory += Math.floor(Math.random() * 5000);
+			if (memory > 81152) memory = 81152;
+			setTimeout(() => {
+				countUp();
+			}, 100);
+		} else bootHandler();
+	};
+
 	const bootHandler = async () => {
-		// await new Promise((resolve) => setTimeout(resolve, 2000));
-		// bootStage = 1;
-		// await new Promise((resolve) => setTimeout(resolve, 400));
-		// bootStage = 3;
-		// await new Promise((resolve) => setTimeout(resolve, 1500));
-		// bootStage = 4;
-		// await new Promise((resolve) => setTimeout(resolve, 300));
-		// bootStage = 5;
-		// await new Promise((resolve) => setTimeout(resolve, 600));
-		// bootStage = 6;
-		// await new Promise((resolve) => setTimeout(resolve, 1000));
-		// bootStage = 7;
-		// await new Promise((resolve) => setTimeout(resolve, 400));
-		// bootStage = 8;
-		// await new Promise((resolve) => setTimeout(resolve, 500));
-		// bootStage = 9;
-		// await new Promise((resolve) => setTimeout(resolve, 1000));
-		bootStage = 10;
+		bootStage = 1;
+		await new Promise((resolve) => setTimeout(resolve, 1000));
+		bootStage = 2;
+		await new Promise((resolve) => setTimeout(resolve, 800));
+		bootStage = 3;
+		await new Promise((resolve) => setTimeout(resolve, 800));
+		bootStage = 4;
+		await new Promise((resolve) => setTimeout(resolve, 600));
+		bootStage = 5;
 	};
 
 	onMount(() => {
-		bootHandler();
+		countUp();
 	});
 
 	afterUpdate(() => {
@@ -143,193 +139,58 @@
 					if (input) input.focus();
 				}}
 			>
-				{#if bootStage === 0}
-					<p>Phoenix S3 TRI064V+ EDO Turbo booseted. Version 1.02-02</p>
-					<p>Copyright 1987-1982 Phoenix Technologies Ltd.</p>
-					<p>Copyright 1992-1995 S3 Incorporated</p>
-					<p>All Rights Reserved</p>
+				{#if bootStage === 0 || bootStage === 1}
+					<p>{memory} <span>KB OK</span></p>
+
+					{#if bootStage === 1}
+						<p><span class="caret">█</span></p>
+					{/if}
+				{:else if bootStage === 2}
 					<p><span class="caret">█</span></p>
-				{:else if bootStage === 3 || bootStage === 4}
-					<div class="boot">
-						<img src={Logo} alt="" />
-						<p>Award Modular BIOS v4.51.PG, An energy Star Ally</p>
-						<p>Copyright 1984-98, Award Software, Inc.</p>
-						<br />
-						<p>GX_M Ver 1.0 09/25/1998</p>
-						<p>Processor: Pentium(R) II 300 MHz</p>
-						<p>Memory Testing: 65536K OK</p>
-						<br />
-						<p>Award Plug and Play BIOS Extension v1.0A</p>
-						<p>Copyright (C) 1998, Award Software, Inc.</p>
-						{#if bootStage === 4}
-							<p>CDRPM : LITE-On LTB486S 48x Max</p>
-						{/if}
-					</div>
-				{:else if bootStage >= 6}
-					<table>
-						<div class="hardware">
-							<tr>
-								<td>Processor</td>
-								<td>: Pentium(R) II 300 MHz</td>
-							</tr>
-							<tr>
-								<td>Co-Processor</td>
-								<td>: Installed</td>
-							</tr><tr>
-								<td>CPU Clock</td>
-								<td>: 250MHz</td>
-							</tr>
-							<tr>
-								<td>Memory</td>
-								<td>: 65536K</td>
-							</tr>
-							<tr>
-								<td> Extended Memory</td>
-								<td>: 64512K</td>
-							</tr>
-						</div>
-						<div class="disk">
-							<tr>
-								<td>Diskette Drive A</td>
-								<td>: 1.44M, 3.5 in.</td>
-							</tr>
-							<tr>
-								<td>Diskette Drive B</td>
-								<td>: None</td>
-							</tr>
-							<tr>
-								<td>Pri. Master Disk</td>
-								<td>: LBRA .MODE 4,32021MB</td>
-							</tr>
-							<tr>
-								<td>Pri. Slave Disk</td>
-								<td>: None</td>
-							</tr>
-							<tr>
-								<td>Sec. Master Disk</td>
-								<td>: CDROM,Mode 4</td>
-							</tr>
-							<tr>
-								<td>Sec. Slave Disk</td>
-								<td>: None</td>
-							</tr>
-							<tr>
-								<td>Display Type</td>
-								<td>: EGA/VGA</td>
-							</tr>
-							<tr>
-								<td>Parallel Port</td>
-								<td>: 378</td>
-							</tr>
-							<tr>
-								<td>Serial Port</td>
-								<td>: 3F8</td>
-							</tr>
-						</div>
-					</table>
+				{:else if bootStage === 3 || bootStage === 4 || bootStage === 5}
+					<p>Starting MS-DOS...</p>
 					<br />
-
-					{#if bootStage >= 7}
-						<p>PCI device listing ...</p>
-						<table class="PCI">
-							<tr class="border-bottom">
-								<td>Bus No.</td>
-								<td>Device No.</td>
-								<td>Func No.</td>
-								<td>Vendor ID</td>
-								<td>Device ID</td>
-								<td>Device Class</td>
-								<td>IRQ</td>
-							</tr>
-							<tr>
-								<td>0</td>
-								<td>0</td>
-								<td>0</td>
-								<td>8086</td>
-								<td>7190</td>
-								<td>PCI to ISA Bridge</td>
-								<td>9</td>
-							</tr>
-							<tr>
-								<td>0</td>
-								<td>1</td>
-								<td>0</td>
-								<td>8086</td>
-								<td>7191</td>
-								<td>IDE Controller</td>
-								<td>14</td>
-							</tr>
-							<tr>
-								<td>0</td>
-								<td>2</td>
-								<td>0</td>
-								<td>8086</td>
-								<td>7192</td>
-								<td>USB Controller</td>
-								<td>11</td>
-							</tr>
-						</table>
-						{#if bootStage >= 8}
-							<p>ISA/PNP device listing...</p>
-							<table class="ISA">
-								<tr class="border-bottom">
-									<td>Card No</td>
-									<td>Device No</td>
-									<td>DMA</td>
-									<td>IRQ</td>
-									<td>Device Name</td>
-								</tr>
-								<tr>
-									<td>1</td>
-									<td>0</td>
-									<td>1</td>
-									<td>5</td>
-									<td>Standard Floppy Disk Controller</td>
-								</tr>
-							</table>
-							<p>Verifying DMI Pool Data.......</p>
-							<p>Starting MS-DOS.......</p>
-						{/if}
-						{#if bootStage >= 9}
-							<br />
-							{#if bootStage === 9}
-								<p>Testing extended memory.......<span class="caret">█</span></p>
-							{:else}
-								<p>Testing extended memory.......</p>
-							{/if}
+					{#if bootStage === 3}
+						<p><span class="caret">█</span></p>
+					{/if}
+					{#if bootStage === 4 || bootStage === 5}
+						<p>The IBM Personal Computer DOS</p>
+						<p>Version 3.30</p>
+						<p>(C)Copyright International Business Machines Corp. 1981</p>
+						<p>(C)Copyright Microsoft Corp 1901</p>
+						{#if bootStage === 4}
+							<p><span class="caret">█</span></p>
 						{/if}
 						<br />
-						{#if bootStage === 10}
-							{#each terminalText as line}
-								<p>{line}</p>
-								{#if line === ' '}
-									<br />
-								{/if}
-							{/each}
-
-							<div class="command-line">
-								<span>{currentDirectory.join('\\')}\</span>
-								<input
-									bind:this={input}
-									type="text"
-									bind:value={inputText}
-									on:keydown={handleKeyDown}
-								/>
-							</div>
-						{/if}
+					{/if}
+					{#if bootStage === 5}
+						{#each terminalText as line}
+							<p>{line}</p>
+							{#if line === ' '}
+								<br />
+							{/if}
+						{/each}
+						<div class="command-line">
+							<span>{currentDirectory.join('\\')}\</span>
+							<input
+								bind:this={input}
+								type="text"
+								bind:value={inputText}
+								on:keydown={handleKeyDown}
+							/>
+						</div>
 					{/if}
 				{/if}
 			</div>
 		</div>
 
-		<div class="description">
+		<div class="article">
 			<h1 class="article-title">MSDOS & IBM PC 5150</h1>
 			<h2 class="article-subtitle">1981</h2>
 			<p class="article-text">
-				MS-DOS (Microsoft Disk Operating System) was the dominant operating system for IBM
-				PC-compatible computers in the 1980s and early 1990s. It played a crucial role in
-				popularizing personal computers and laid the foundation for the success of Microsoft
-				Windows.
+				MS-DOS,running on the IBM PC 5150, marked a turning point in personal computing. As a
+				versatile, user-friendly operating system, MS-DOS facilitated widespread accessibility to
+				computing technology, enabling a new era of software development and personal productivity.
 			</p>
 		</div>
 	</div>
@@ -347,74 +208,72 @@
 		align-items: center;
 		padding: var(--carousel-padding);
 		width: 100%;
-		height: 100lvh;
+		min-height: 100svh;
+		height: 100% !important;
+		padding-top: 100px;
 		box-sizing: border-box;
-		background: linear-gradient(to bottom, #b8b8b8, rgb(63, 135, 53) 100%);
+		background: linear-gradient(to bottom, #121311 50%, rgb(39, 89, 32) 100%);
 	}
 
 	.content {
-		width: var(--carousel-width);
-		max-width: 100%;
+		max-width: var(--max-content-width);
+		display: grid;
+		grid-template-columns: 2fr 1fr;
+		width: 100%;
 		height: 100%;
-		box-sizing: border-box;
-		display: flex;
-		flex-direction: row;
 		align-items: center;
 		justify-content: center;
-		/* padding-top: 50px; */
-	}
-
-	.computer {
-		position: relative;
-		aspect-ratio: 1.3441;
-		max-width: 100%;
-		max-height: 100%;
-	}
-
-	.computer img {
-		width: 1000px;
-		max-width: 100%;
-		max-height: 100%;
-		/* background-color: green; */
-		z-index: 1;
-		pointer-events: none;
-	}
-
-	.description {
-		max-width: 100%;
-		width: 400px;
-		pointer-events: none;
-	}
-
-	.description h1 {
-		color: rgb(75, 236, 54);
-	}
-
-	.description h2 {
-		color: var(--text-color-primary);
-	}
-
-	.description h1 {
-		font-family: 'DOSVGA', monospace;
-	}
-
-	@media (max-width: 500px) {
-		h1 {
-			font-size: 20px;
-		}
-
-		h2 {
-			font-size: 15px;
-		}
 	}
 
 	@media (max-width: 1000px) {
 		.content {
-			flex-direction: column;
+			grid-template-columns: 1fr;
+			grid-template-rows: 1 1;
+			/* align-items: center; */
+		}
+
+		.computer {
+			align-self: start;
 		}
 		.description {
-			width: 100%;
+			align-self: start;
 		}
+	}
+
+	.computer {
+		/* position: relative;
+		aspect-ratio: 1.3441;
+		max-width: 100%;
+		max-height: 100%; */
+		position: relative;
+		/* width: 100%; */
+		/* height: 100%; */
+		z-index: 1;
+	}
+
+	.computer img {
+		width: 1000px;
+
+		max-width: 100%;
+		max-height: 100%;
+		z-index: 1;
+		pointer-events: none;
+	}
+
+	.article {
+		max-width: 100%;
+		pointer-events: none;
+	}
+
+	.article h1 {
+		font-family: 'DOSVGA', monospace;
+		/* word-spacing: -10px; */
+		font-size: 30px;
+		color: rgb(75, 236, 54);
+	}
+
+	.article h2 {
+		color: var(--text-color-primary);
 	}
 
 	.terminal {
@@ -423,65 +282,20 @@
 		height: 35%;
 		left: 20%;
 		top: 12%;
+		box-sizing: border-box;
 		padding: 3%;
-		padding-bottom: 1%;
-
+		padding-bottom: 2%;
 		background-color: black;
 		background: radial-gradient(
 			circle at bottom center,
-			rgb(58, 56, 56) 0%,
+			rgb(44, 42, 42) 0%,
 			rgb(30, 31, 31) 50%,
 			rgba(0, 0, 0, 1) 100%
 		);
-		box-sizing: border-box;
 		overflow: hidden;
 		box-shadow: inset 0 0 50px 0 rgba(0, 0, 0, 0.5);
 		cursor: pointer;
-	}
-
-	.boot {
-		height: 100%;
-	}
-
-	.boot img {
-		width: 200px;
-		max-width: 40%;
-		float: inline-end;
-	}
-
-	table {
-		width: 100%;
-		border: 1px solid white;
-		border-collapse: separate;
-		overflow: hidden;
-	}
-
-	.PCI {
-		border: none;
-	}
-
-	.ISA {
-		border: none;
-	}
-
-	.border-bottom {
-		box-shadow: 0 1px 0 0 white;
-	}
-
-	@media (max-width: 500px) {
-		table {
-			display: inline-block;
-		}
-	}
-
-	.hardware {
-		width: 100%;
-		padding-bottom: 10px;
-	}
-
-	.disk {
-		padding-top: 10px;
-		border-top: 1px solid white;
+		z-index: -1;
 	}
 
 	.command-line {

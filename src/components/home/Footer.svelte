@@ -5,9 +5,10 @@
 <style>
 	div {
 		color: #fff;
-		padding: 150px 0;
-		background-color: #000;
+		min-height: 150px;
 		display: flex;
+		align-items: center;
 		justify-content: center;
+		color: var(--text-color-secondary);
 	}
 </style>
